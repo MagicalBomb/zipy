@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "zipy"
-version = "0.1.0"
+version = "0.2.0"
 description = "Zipy is a toolbox containing a set of convenient python function"
 authors = ["冒险岛真好玩 <17826800084g@gmail.com>"]
 readme = "README.md"
@@ -14,7 +14,12 @@ python = "^3.10"
 black = "^22.10.0"
 pre-commit = "^2.20.0"
 pytest = {extras = ["dotenv"], version = "^7.2.0"}
+pytest-asyncio = "^0.20.2"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = "."
