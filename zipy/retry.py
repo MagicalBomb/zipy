@@ -1,7 +1,7 @@
 import asyncio
-import inspect
 import time
 from typing import Iterable
+from zipy import inspect
 
 
 __all__ = ["retry"]
@@ -13,12 +13,12 @@ def retry(*, times: int = 1, wait: float = 0, exceptions: Iterable = [Exception]
     The Function can be normal or coroutine function
 
     :param times: how much times to retry
-    :param wait: time interval in seconds between two retries 
+    :param wait: time interval in seconds between two retries
     :param exceptions: Only exception occured is instance of any of these exceptions, it would retry
     :return: decorator
     :raises ValueError: raises if times or wait if negative number
-    :raises ValueError: raises if object be decorated is neither coroutine nor normal function 
-    :raises TypeError: raises if type of exceptions is not iterable 
+    :raises ValueError: raises if object be decorated is neither coroutine nor normal function
+    :raises TypeError: raises if type of exceptions is not iterable
     """
     if times < 0:
         raise ValueError("times must not be negative")
@@ -37,13 +37,15 @@ def retry(*, times: int = 1, wait: float = 0, exceptions: Iterable = [Exception]
                     except Exception as exc:
                         if ntry == times - 1:
                             raise exc
-                        if any(map(lambda c: isinstance(exc, c), exceptions)):
+                        if any(
+                            map(lambda c: isinstance(exc, c), exceptions)  # noqa: F821
+                        ):
                             await asyncio.sleep(wait)
                         else:
                             raise exc
 
             return wrapper
-        elif callable(func) and (not inspect.isasyncgenfunction(func)):
+        elif inspect.isnormalfunc(func):
 
             def wrapper(*args, **kwargs):
                 for ntry in range(times):
@@ -52,7 +54,9 @@ def retry(*, times: int = 1, wait: float = 0, exceptions: Iterable = [Exception]
                     except Exception as exc:
                         if ntry == times - 1:
                             raise exc
-                        if any(map(lambda c: isinstance(exc, c), exceptions)):
+                        if any(
+                            map(lambda c: isinstance(exc, c), exceptions)  # noqa: F821
+                        ):
                             time.sleep(wait)
                         else:
                             raise exc
