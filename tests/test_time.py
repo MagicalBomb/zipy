@@ -2,7 +2,7 @@ import datetime
 
 from pytest import raises
 
-from zipy.time import time_range
+from zipy.time import complete_timeseries, time_range
 
 
 class TestTimeRange:
@@ -48,3 +48,56 @@ class TestTimeRange:
                 datetime.timedelta(),
             ):
                 ...
+
+
+class TestCompleteTimeseries:
+    def test_normal_case(self):
+        lst = [
+            {"v": 1, "t": datetime.datetime(2022, 1, 1)},
+            {"v": 3, "t": datetime.datetime(2022, 1, 3)},
+            {"v": 5, "t": datetime.datetime(2022, 1, 5)},
+        ]
+
+        def write_time(o, dt):
+            o["t"] = dt
+
+        def write_other(o, pre):
+            o["v"] = pre["v"] + 1
+
+        res = complete_timeseries(
+            lst=lst,
+            read_time=lambda o: o["t"],
+            write_time=write_time,
+            write_other=write_other,
+            step=datetime.timedelta(days=1),
+        )
+
+        assert len(res) == 5
+        for i in range(1, 6):
+            assert res[i - 1] == {"v": i, "t": datetime.datetime(2022, 1, i)}
+
+    def test_over_end(self):
+        lst = [
+            {"v": 1, "t": datetime.datetime(2022, 1, 1)},
+            {"v": 3, "t": datetime.datetime(2022, 1, 3)},
+            {"v": 6, "t": datetime.datetime(2022, 1, 6)},
+        ]
+
+        def write_time(o, dt):
+            o["t"] = dt
+
+        def write_other(o, pre):
+            o["v"] = pre["v"] + 1
+
+        res = complete_timeseries(
+            lst=lst,
+            read_time=lambda o: o["t"],
+            write_time=write_time,
+            write_other=write_other,
+            step=datetime.timedelta(days=2),
+        )
+
+        assert len(res) == 3
+        assert res[0] == {"v": 1, "t": datetime.datetime(2022, 1, 1)}
+        assert res[1] == {"v": 3, "t": datetime.datetime(2022, 1, 3)}
+        assert res[2] == {"v": 4, "t": datetime.datetime(2022, 1, 5)}
