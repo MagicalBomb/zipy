@@ -4,7 +4,7 @@ version = "0.3.0"
 description = "Zipy is a toolbox containing a set of convenient python function"
 authors = ["冒险岛真好玩 <17826800084g@gmail.com>"]
 readme = "README.md"
-packages = [{include = "zipy_toolbox"}]
+packages = [{include = "zipy"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
