@@ -79,3 +79,21 @@ class TestCache:
         assert lst == [0, 1, 2]
         elaspedtime = time.time() - starttime
         assert elaspedtime > 0.1
+
+    def test_different_param(self):
+        hit = 0
+
+        @cache()
+        def func(param):
+            nonlocal hit
+            hit += 1
+            return param
+
+        assert func(1) == 1
+        assert hit == 1
+
+        assert func(1) == 1
+        assert hit == 1
+
+        assert func(2) == 2
+        assert hit == 2

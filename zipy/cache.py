@@ -2,6 +2,17 @@ import time
 from zipy import inspect
 
 
+__all__ = ["cache"]
+
+
+def _make_key(args: tuple, kwargs: dict):
+    key = args
+    for k in sorted(kwargs):
+        key += (k, kwargs[k], type(kwargs[k]))
+    key += tuple(type(v) for v in args)
+    return hash(key)
+
+
 def cache(*, ttl: float = 0):
     """
     Cache result of function. function can be either normal ,coroutine or asyncgen function
@@ -12,54 +23,61 @@ def cache(*, ttl: float = 0):
     """
 
     def decorator(func):
-        cached = None
-        birthday = 0
+        # structure: {"revoke_sig": [result, birthday]}
+        cached = {}
 
         if inspect.iscoroutinefunction(func):
 
             async def wrapper(*args, **kwargs):
-                nonlocal cached, birthday
+                nonlocal cached
+                key = _make_key(args, kwargs)
+                result, birthday = cached.get(key, [None, 0])
+
                 isforever = ttl <= 0
                 isexpired = time.time() - birthday >= ttl
-                if cached and (isforever or (not isexpired)):
-                    return cached
+                if (result is not None) and (isforever or (not isexpired)):
+                    return result
                 else:
-                    res = await func(*args, **kwargs)
-                    cached = res
-                    birthday = time.time()
-                    return res
+                    result = await func(*args, **kwargs)
+                    cached[key] = [result, time.time()]
+                    return result
 
             return wrapper
         elif inspect.isnormalfunc(func):
 
             def wrapper(*args, **kwargs):
-                nonlocal cached, birthday
+                nonlocal cached
+                key = _make_key(args, kwargs)
+                result, birthday = cached.get(key, [None, 0])
+
                 isforever = ttl <= 0
                 isexpired = time.time() - birthday >= ttl
-                if cached and (isforever or (not isexpired)):
-                    return cached
+                if (result is not None) and (isforever or (not isexpired)):
+                    return result
                 else:
-                    res = func(*args, **kwargs)
-                    cached = res
-                    birthday = time.time()
-                    return res
+                    result = func(*args, **kwargs)
+                    cached[key] = [result, time.time()]
+                    return result
 
             return wrapper
         elif inspect.isasyncgenfunction(func):
 
             async def wrapper(*args, **kwargs):
-                nonlocal cached, birthday
+                nonlocal cached
+                key = _make_key(args, kwargs)
+                result, birthday = cached.get(key, [None, 0])
+
                 isforever = ttl <= 0
                 isexpired = time.time() - birthday >= ttl
-                if cached and (isforever or (not isexpired)):
-                    for ele in cached:
+                if (result is not None) and (isforever or (not isexpired)):
+                    for ele in result:
                         yield ele
                 else:
-                    cached = []
-                    birthday = time.time()
+                    result = []
                     async for ele in func(*args, **kwargs):
-                        cached.append(ele)
+                        result.append(ele)
                         yield ele
+                    cached[key] = [result, time.time()]
 
             return wrapper
         else:
