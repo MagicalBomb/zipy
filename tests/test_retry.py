@@ -1,18 +1,11 @@
 import contextlib
 import time
-import pytest
 from pytest import raises
 from zipy.retry import retry
 
 
 class TestRetryFunc:
     async def test_paramter_check(self):
-        retry(times=999)
-        retry(times=1)
-        retry(times=0)
-        with raises(ValueError):
-            retry(times=-1)
-
         retry(wait=888)
         retry(wait=1)
         retry(wait=0)
@@ -112,10 +105,22 @@ class TestRetryFunc:
                 return
 
         func_ = retry(times=2, wait=0.1)(func)
-        with raises(KeyError) as exc:
+        with raises(KeyError):
             func_()
 
         func_ = retry(times=3, wait=0.1)(func)
+        func_()
+
+        # test if times < 0 works
+        count = 0
+
+        def func():
+            nonlocal count
+            if count < 100:
+                count += 1
+                raise KeyError("count < 100")
+
+        func_ = retry(times=0, wait=0)(func)
         func_()
 
     async def test_with_async_func(self):
@@ -130,8 +135,20 @@ class TestRetryFunc:
                 return
 
         func_ = retry(times=2, wait=0.1)(func)
-        with raises(KeyError) as exc:
+        with raises(KeyError):
             await func_()
 
         func_ = retry(times=3, wait=0.1)(func)
+        await func_()
+
+        # test if times < 0 works
+        count = 0
+
+        async def func():
+            nonlocal count
+            if count < 100:
+                count += 1
+                raise KeyError("count < 100")
+
+        func_ = retry(times=0, wait=0)(func)
         await func_()
