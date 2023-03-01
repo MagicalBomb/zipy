@@ -1,5 +1,8 @@
-# Developement
-## Prerequisit
+# Introduction
+zipy is a toolbox for usual python development
+
+# Development
+# Prerequisite
 - install poetry
 
 ## Build dev environment
