@@ -19,4 +19,5 @@ def dict_get(d, *keys, default=None) -> object:
             d = d[k]
         except (TypeError, KeyError):
             d = default
+            break
     return d
