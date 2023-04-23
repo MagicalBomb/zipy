@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "zipy"
-version = "0.5.1"
+version = "0.5.2"
 description = "Zipy is a toolbox containing a set of convenient python function"
 authors = ["冒险岛真好玩 <17826800084g@gmail.com>"]
 readme = "README.md"
