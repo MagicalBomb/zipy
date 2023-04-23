@@ -2,6 +2,7 @@ import asyncio
 import time
 import itertools
 from typing import Iterable
+from functools import update_wrapper
 from zipy import inspect
 
 
@@ -43,7 +44,7 @@ def retry(*, times: int = 1, wait: float = 0, exceptions: Iterable = [Exception]
                         else:
                             raise exc
 
-            return wrapper
+            return update_wrapper(wrapper, func)
         elif inspect.isnormalfunc(func):
 
             def wrapper(*args, **kwargs):
@@ -60,7 +61,7 @@ def retry(*, times: int = 1, wait: float = 0, exceptions: Iterable = [Exception]
                         else:
                             raise exc
 
-            return wrapper
+            return update_wrapper(wrapper, func)
         else:
             raise ValueError(f"{func} is neither coroutine nor normal function")
 
